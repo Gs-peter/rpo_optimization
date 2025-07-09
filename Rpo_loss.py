@@ -1,22 +1,7 @@
-import torch
-
-class rpo_loss_func:
-        def __init__( self, ref_model , policy_model , beta, distance_matrix ):
-        self.ref_model = ref_model
-        self.policy_model = policy_model
-        self.beta = beta
-        self.D = distance_matrix
-
-    def backward_kl( self,y,x):                                                                                                                                                                                                                     '''
+                                                                                                                       '''
         first we are need to compute π(yk∣x) likehood of the model to generate a prompt
         that is done by computing the sum of all the token probability that have in respone
         '''
-
-        model_respone_likelihood =
-        exp_response_term = torch.exp( self.beta * torch.log(
-
-    def __call__(self ,
-
 
 
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -31,7 +16,10 @@ quantization_config = BitsAndBytesConfig(
     bnb_4bit_use_double_quant=True
 )
 
-tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-medium", use_fast = True)
+tokenizer = AutoTokenizer.from_pretrained(
+    "microsoft/DialoGPT-medium", 
+    use_fast = True
+    )
 tokenizer.pad_token = tokenizer.eos_token
 
 model = AutoModelForCausalLM.from_pretrained(
@@ -49,11 +37,51 @@ def map_tokenizer(example):
         truncation = True,
         return_tensors = 'pt'
     ).to('cuda')
-dataset = dataset['train'].map(map_tokenizer, batched=True, remove_columns = dataset['train'].column_names)
+dataset = dataset['train'].map(
+    map_tokenizer, 
+    batched=True, 
+    remove_columns = dataset['train'].column_names
+    )
+
 dataset.set_format(
     type = 'torch',
     columns = ['input_ids','attention_mask', 'labels'],
     output_all_columns = True
 )
-~
-~
+
+def get_res_prob(
+        res,
+        promt,
+        model
+    ):
+
+        response_prob = []
+        for i, response_token  in enumerate(
+                len(response_tokens)        
+                ):
+
+            model_input = troch.cat([
+                input_ids,
+                torch.tensor(response[:i])
+                         ]
+                )
+            model_output = model(
+                **model_input
+                )
+            softmax = F.softmax(
+                model_output.logits,
+                dim = -1
+                )
+            output_token_probility = torch.gather(
+                softmax,
+                index = response_token
+                )
+            response_peob.append(
+                output_token_probility.item()
+                )
+        Output = 1 
+        for rep_prob in response_prob:
+            Output = output * torch.exp(rep_prob )
+
+    return Output 
+
